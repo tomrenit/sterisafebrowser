@@ -20,6 +20,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import android.R.attr.description
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.widget.Button
 import android.widget.ProgressBar
 import java.lang.Exception
 
@@ -30,10 +31,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var imageView: ImageView
     private lateinit var textView: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var homeButton: Button
+    private lateinit var refreshButton: Button
 
     private var tag = "MainActivity"
     private var wifiAvailable = false
     private var sterisafeUrl = "http://192.168.111.1/"
+    private var lastTriedUrl = ""
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +51,8 @@ class MainActivity : AppCompatActivity() {
         imageView = findViewById(R.id.imageView)
         textView = findViewById(R.id.textView)
         progressBar = findViewById(R.id.progressBar)
+        homeButton = findViewById(R.id.homeButton)
+        refreshButton = findViewById(R.id.refreshButton)
 
 
         webView = findViewById(R.id.webView)
@@ -54,7 +60,9 @@ class MainActivity : AppCompatActivity() {
 
         webView.webViewClient = object : WebViewClient() {
             override fun onLoadResource(view: WebView?, url: String?) {
-                progressBar.visibility = View.VISIBLE
+                if (url == view?.url) {
+                    progressBar.visibility = View.VISIBLE
+                }
                 super.onLoadResource(view, url)
             }
 
@@ -86,6 +94,7 @@ class MainActivity : AppCompatActivity() {
                 Log.e("error", "ReceivedError on WebView. ERROR CODE is ${error?.errorCode}")
                 Log.e("error", "description is ${error?.description}")
                 Log.e("error", "failingUrl is ${request?.url}")
+                lastTriedUrl = request?.url.toString()
                 try {
                     view!!.loadUrl("file:///android_asset/www/error.html?errorCode=" + error?.errorCode + "&errorDescription=" + error?.description)
                 } catch (e: Exception) {
@@ -108,6 +117,21 @@ class MainActivity : AppCompatActivity() {
             } else {
                 webView.loadUrl(sterisafeUrl)
             }
+        }
+
+        refreshButton.setOnClickListener {
+            Log.i(tag, "refreshButton clicked")
+            val url = webView.url ?: ""
+            if (url.startsWith("file")) {
+                webView.loadUrl(lastTriedUrl)
+            } else {
+                webView.reload()
+            }
+        }
+
+        homeButton.setOnClickListener {
+            Log.i(tag, "homeButton clicked")
+            webView.loadUrl(sterisafeUrl)
         }
     }
 
