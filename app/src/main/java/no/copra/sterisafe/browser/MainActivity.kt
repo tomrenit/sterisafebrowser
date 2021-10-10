@@ -53,17 +53,22 @@ class MainActivity : AppCompatActivity() {
         webView.settings.javaScriptEnabled = true
 
         webView.webViewClient = object : WebViewClient() {
-            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                super.onPageStarted(view, url, favicon)
+            override fun onLoadResource(view: WebView?, url: String?) {
                 progressBar.visibility = View.VISIBLE
+                super.onLoadResource(view, url)
+            }
+
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                progressBar.visibility = View.VISIBLE
+                super.onPageStarted(view, url, favicon)
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                 if (Uri.parse(url).host == Uri.parse(sterisafeUrl).host) {
+                    Log.d(tag, "Returning false for shouldoverride")
                     return false
                 }
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                startActivity(intent)
+                Log.d(tag, "Returning true for shouldoverride")
                 return true
             }
 
@@ -78,11 +83,11 @@ class MainActivity : AppCompatActivity() {
                 error: WebResourceError?
             ) {
                 progressBar.visibility = View.INVISIBLE
-                Log.e("error", "ReceivedError on WebView. ERROR CODE is $error")
-                Log.e("error", "description is " + description)
+                Log.e("error", "ReceivedError on WebView. ERROR CODE is ${error?.errorCode}")
+                Log.e("error", "description is ${error?.description}")
                 Log.e("error", "failingUrl is ${request?.url}")
                 try {
-                    view!!.loadUrl("file:///android_asset/www/error.html?errorCode=" + error.toString() + "&errorDescription=" + description)
+                    view!!.loadUrl("file:///android_asset/www/error.html?errorCode=" + error?.errorCode + "&errorDescription=" + error?.description)
                 } catch (e: Exception) {
                     Log.e("error", e.toString())
                 }
@@ -97,8 +102,12 @@ class MainActivity : AppCompatActivity() {
 
 
         imageView.setOnClickListener {
-            Log.i(tag, "click!")
-            webView.loadUrl(sterisafeUrl)
+            Log.i(tag, "clicked the badge!")
+            if (webView.url == sterisafeUrl) {
+                webView.reload()
+            } else {
+                webView.loadUrl(sterisafeUrl)
+            }
         }
     }
 
