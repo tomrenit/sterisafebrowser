@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity() {
 
         webView = findViewById(R.id.webView)
         webView.settings.javaScriptEnabled = true
+        webView.settings.domStorageEnabled = true
 
         webView.webViewClient = object : WebViewClient() {
             override fun onLoadResource(view: WebView?, url: String?) {
